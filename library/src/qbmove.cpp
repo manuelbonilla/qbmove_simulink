@@ -128,6 +128,7 @@ void    errorHandle(SimStruct *S, const int);
 //==============================================================================
 
 int activation_state[255];
+comm_settings g_comm_settings;
 
 //==============================================================================
 //                                                            mdlInitializeSizes
@@ -436,7 +437,7 @@ static void mdlStart( SimStruct *S )
     int8_T qbot_id;
     int try_counter;
     char aux_char;
-    comm_settings comm_settings_t;
+    // comm_settings g_comm_settings;
 
 //=============================                           Check inputs integrity 
 
@@ -465,8 +466,8 @@ static void mdlStart( SimStruct *S )
         if(in_handle == -1) return;
     #endif 
 
-    //RS485InitCommSettings(&comm_settings_t);
-    comm_settings_t.file_handle = in_handle;
+    //RS485InitCommSettings(&g_comm_settings);
+    g_comm_settings.file_handle = in_handle;
 
     if (PARAM_ACTIVE_STARTUP_FCN)
         activation(S, ON);       
@@ -485,8 +486,10 @@ static void mdlStart( SimStruct *S )
         qbot_id = qbot_id <= 0   ? 1    : qbot_id;  // inferior limit
         qbot_id = qbot_id >= 128 ? 127  : qbot_id;  // superior limit
 
-        //commSetWatchDog(&comm_settings_t, qbot_id, PARAM_WDT_FCN);
+        //commSetWatchDog(&g_comm_settings, qbot_id, PARAM_WDT_FCN);
     }
+
+    // g_comm_settings = g_comm_settings;
 
 }
 #endif /* MDL_START */
@@ -539,32 +542,36 @@ static void  mdlUpdate( SimStruct *S, int_T tid )
     int16_T measurements[3];
 
     int i;
-    comm_settings comm_settings_t;
-
 //=======================================     should this function be evaluated?
 
     #if defined(_WIN32) || defined(_WIN64)
-        if(in_handle == INVALID_HANDLE_VALUE) return;
+        if(in_handle == INVALID_HANDLE_VALUE) {
+            return;
+        }
+
     #else
-        if(in_handle == -1) return;
+        if(in_handle == -1) {
+            return;
+        }
+
     #endif
 
 //=============================     should an output handle appear in the block?
 
-    if(params_daisy_chaining) 
-        showOutputHandle(S);
+    // if(params_daisy_chaining) 
+    //     showOutputHandle(S);
 
 //===========================================     sending command for each motor
 
-    comm_settings_t.file_handle = in_handle;
-    
+
+    // g_comm_settings.file_handle = in_handle;
     if( (params_com_direction == TX) || (params_com_direction == BOTH) ) 
         rx_tx = 3;
     else
         rx_tx = 1;
-
     // Activation after start up    
     if (!PARAM_ACTIVE_STARTUP_FCN){
+
         for (i = 0; i < NUM_OF_QBOTS; i++){
             if ((activation_state[i] == 0) && ((int) in_ref_activation(rx_tx)[i] != 0))
                     activation(S, ON, i);
@@ -581,7 +588,6 @@ static void  mdlUpdate( SimStruct *S, int_T tid )
     
 
 //==========================================     asking positions for each motor
-
     for(i = 0; i < NUM_OF_QBOTS; i++)
     {
 //============================================================     qbot ID check
@@ -603,13 +609,11 @@ static void  mdlUpdate( SimStruct *S, int_T tid )
 
         if( (params_com_direction == RX) || (params_com_direction == BOTH) ){
 
-            
-
             out_pos_a[i]    = dwork_out(i)[0];
             out_pos_b[i]    = dwork_out(i)[1];
             out_pos_link[i] = dwork_out(i)[2];
 
-            if(!commGetMeasurements(&comm_settings_t, qbot_id, measurements))
+            if(!commGetMeasurements(&g_comm_settings, qbot_id, measurements))
             {
                 out_pos_a[i]       = shalf_dir * ((double) measurements[0]) / meas_unity;
                 out_pos_b[i]       = shalf_dir * ((double) measurements[1]) / meas_unity;
@@ -636,7 +640,7 @@ static void  mdlUpdate( SimStruct *S, int_T tid )
                     refs[0] = (int16_T)( auxa );
                     refs[1] = (int16_T)( auxb );
                     
-                    commSetInputs(&comm_settings_t, qbot_id, refs);
+                    commSetInputs(&g_comm_settings, qbot_id, refs);
                     break;
 
                 case EQ_POS_AND_PRESET: 
@@ -659,7 +663,7 @@ static void  mdlUpdate( SimStruct *S, int_T tid )
                     refs[0] = (int16_T)( auxa + auxb);
                     refs[1] = (int16_T)( auxa - auxb);
                     
-                    commSetInputs(&comm_settings_t, qbot_id, refs);
+                    commSetInputs(&g_comm_settings, qbot_id, refs);
                     break;
                     
                 case EQ_POS_AND_STIFF_PERC:
@@ -682,7 +686,7 @@ static void  mdlUpdate( SimStruct *S, int_T tid )
                     refs[0] = (int16_T)(auxa);
                     refs[1] = (int16_T)(auxb);
                     
-                    commSetPosStiff(&comm_settings_t, qbot_id, refs);
+                    commSetPosStiff(&g_comm_settings, qbot_id, refs);
                     
                     break;
                 default:
@@ -708,12 +712,10 @@ static void mdlTerminate( SimStruct *S )
     char aux_char;
     int try_counter;
     int i;
-    comm_settings comm_settings_t;
 
-    comm_settings_t.file_handle = in_handle;
+    if (g_comm_settings.file_handle == INVALID_HANDLE_VALUE) {
+        closeRS485(&g_comm_settings);
 
-    if (comm_settings_t.file_handle == INVALID_HANDLE_VALUE) {
-        closeRS485(&comm_settings_t);
         return;
     }
 
@@ -722,7 +724,7 @@ static void mdlTerminate( SimStruct *S )
     // Enable Activation on startup Flag and Setting ID
     mexEvalString(" set_param(gcb,'MaskEnables',{'on','on','on','off','off','off','off','on','on','on'})");
 
-    closeRS485(&comm_settings_t);
+    closeRS485(&g_comm_settings);
 }
 
 //==============================================================================
@@ -751,9 +753,6 @@ void activation(SimStruct *S, bool flag, const int ID){
     int aux;
     int start_count, end_count;
     int qbot_id;
-
-    comm_settings comm_settings_t;
-    comm_settings_t.file_handle = in_handle;
 
     if (flag == ON){
         aux_char = 0x00;
@@ -789,9 +788,9 @@ void activation(SimStruct *S, bool flag, const int ID){
         for (int try_counter = 0; try_counter < 5; try_counter++) {
             ssPrintf("%d ", (try_counter + 1));
             
-            commActivate(&comm_settings_t, qbot_id, aux);
+            commActivate(&g_comm_settings, qbot_id, aux);
             usleep(1000);
-            commGetActivate(&comm_settings_t, qbot_id, &aux_char);
+            commGetActivate(&g_comm_settings, qbot_id, &aux_char);
             
             if ( ((flag == ON) && (aux_char == 0x03)) || ((flag == OFF) && (aux_char == 0x00)) ) {
                 ssPrintf("DONE\n");
