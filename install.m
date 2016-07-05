@@ -79,7 +79,7 @@ copyfile(old_file, new_file);
 % Add path to Set Path field
 path(genpath(cd), path);
 
-clc
+%clc
 
 flag_path = savepath;
 
