@@ -460,14 +460,22 @@ static void mdlStart( SimStruct *S )
 
 //======================================     should initialization be evaluated?
 
+
 #if defined(_WIN32) || defined(_WIN64)
-    if (in_handle == INVALID_HANDLE_VALUE) return;
+    if (in_handle == INVALID_HANDLE_VALUE) 
 #else
-    if (in_handle == -1) return;
+    if (in_handle == -1) 
 #endif
+    {
+        return;
+    }
+
+    ssPrintf("handle %d", g_comm_settings.file_handle);
+    // return;
+    // mexEvalString("set_param(bdroot, 'SimulationCommand', 'stop')");
 
     //RS485InitCommSettings(&g_comm_settings);
-    g_comm_settings.file_handle = in_handle;
+   g_comm_settings.file_handle = in_handle;
 
     if (PARAM_ACTIVE_STARTUP_FCN)
         activation(S, ON);
@@ -516,6 +524,8 @@ static void mdlStart( SimStruct *S )
 #if defined(MDL_UPDATE)
 static void  mdlUpdate( SimStruct *S, int_T tid )
 {
+
+    // ssPrintf("handle %d\n", g_comm_settings.file_handle);
     double   auxa, auxb;
     char aux_char;
     int rx_tx; // Dynamic size of in_ref_activation
@@ -716,20 +726,20 @@ static void mdlOutputs( SimStruct *S, int_T tid ) {
 
 static void mdlTerminate( SimStruct *S )
 {
-    char aux_char;
-    int try_counter;
-    int i;
+    // char aux_char;
+    // int try_counter;
+    // int i;
 
-    if (g_comm_settings.file_handle == INVALID_HANDLE_VALUE) {
-        closeRS485(&g_comm_settings);
+    // if (g_comm_settings.file_handle == INVALID_HANDLE_VALUE) {
+    //     closeRS485(&g_comm_settings);
 
-        return;
-    }
+    //     return;
+    // }
 
     activation(S, OFF);
 
-    // Enable Activation on startup Flag and Setting ID
-    mexEvalString(" set_param(gcb,'MaskEnables',{'on','on','on','off','off','off','off','on','on','on'})");
+    // // Enable Activation on startup Flag and Setting ID
+    // mexEvalString(" set_param(gcb,'MaskEnables',{'on','on','on','off','off','off','off','on','on','on'})");
 
     closeRS485(&g_comm_settings);
 }

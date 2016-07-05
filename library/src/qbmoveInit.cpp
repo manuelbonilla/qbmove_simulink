@@ -93,6 +93,7 @@
 //==============================================================================
 //                                           Configuration and execution methods
 //==============================================================================
+comm_settings g_comm_settings;
 
 static void mdlInitializeSizes(SimStruct *S)
 {
@@ -173,7 +174,7 @@ static void mdlStart(SimStruct *S)
     char    string_aux[255];                // auxiliar string
     char    serial_port_path[255];          // auxiliar string
     int baud_rate;
-    comm_settings comm_settings_t;
+    
 
     ssPrintf("qbmove simulink library version: %s\n", QBMOVE_SIMULINK_VERSION);
 
@@ -197,26 +198,32 @@ static void mdlStart(SimStruct *S)
             break;
     }
 
-    openRS485(&comm_settings_t, serial_port_path, baud_rate);
+    openRS485(&g_comm_settings, serial_port_path, baud_rate);
+
+    // ssPrintf("Could not connect to %d\n", g_comm_settings.file_handle);
+    // mexEvalString("set_param(bdroot, 'SimulationCommand', 'stop')");
+    // return;
     
-    pwork_handle = comm_settings_t.file_handle;
+    
 
     #if defined(_WIN32) || defined(_WIN64)
-        if(pwork_handle == INVALID_HANDLE_VALUE)
+        if(g_comm_settings.file_handle == INVALID_HANDLE_VALUE)
     #else
-        if(pwork_handle == -1)
+        if(g_comm_settings.file_handle == -1)
     #endif
     {
         ssPrintf("Check your COM port. \nCould not connect to %s\n", serial_port_path);
-        out_handle = &pwork_handle;
+        // ssPrintf("INVALID_HANDLE_VALUE %d\n", g_comm_settings.file_handle);
+        out_handle = &g_comm_settings.file_handle;
 
         // Stop simulation
+        closeRS485(&g_comm_settings);   
         mexEvalString("set_param(bdroot, 'SimulationCommand', 'stop')");
 
-        return;
+        // return;
     }
-
-    out_handle = &pwork_handle;
+    pwork_handle = g_comm_settings.file_handle;
+    out_handle = &g_comm_settings.file_handle;
 }
 #endif /*  MDL_START */
 
@@ -230,7 +237,7 @@ static void mdlStart(SimStruct *S)
 
 static void mdlOutputs(SimStruct *S, int_T tid)
 {
-    out_handle = &pwork_handle;
+    out_handle = &g_comm_settings.file_handle;
 }
 
 //==============================================================================
@@ -241,7 +248,8 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 
 static void mdlTerminate(SimStruct *S)
 {
-
+    // closeRS485(&g_comm_settings);   
+    // g_comm_settings.file_handle = -1;
 }
 
 //==============================================================================
