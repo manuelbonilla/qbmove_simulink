@@ -37,14 +37,14 @@
 
 //===================================================================     inputs
 
-#define in_handle ( *(const HANDLE* *)ssGetInputPortSignal( S, 0 ) )[0]
+#define in_handle ( *(const int* *)ssGetInputPortSignal( S, 0 ) )[0]
 
 //==================================================================     outputs
 
 #define out_current_a         ( ssGetOutputPortRealSignal       ( S, 0 ) )
 #define out_current_b         ( ssGetOutputPortRealSignal       ( S, 1 ) )
-#define out_handle_single ( (HANDLE* *)ssGetOutputPortSignal( S, 0 ) )[0]
-#define out_handle_full   ( (HANDLE* *)ssGetOutputPortSignal( S, 2 ) )[0]
+#define out_handle_single ( (int* *)ssGetOutputPortSignal( S, 0 ) )[0]
+#define out_handle_full   ( (int* *)ssGetOutputPortSignal( S, 2 ) )[0]
 
 //==================================================================      dworks
 #define dwork_out(i)      ( (real_T *)ssGetDWork( S, i ) )
@@ -84,7 +84,7 @@ static void mdlInitializeSizes( SimStruct *S )
 {
     int_T   status;                // for new type definition
     DTypeId COM_HANDLE_id;         // for new type definition
-    HANDLE  handle_aux;            // for new type definition
+    int  handle_aux;            // for new type definition
     int i;                         // for cycles
 
 //======================================================     new type definition
@@ -111,7 +111,7 @@ static void mdlInitializeSizes( SimStruct *S )
 
     if ( !ssSetNumInputPorts( S, 1 ) ) return;
 
-/////////////////////////////////////// 0 ) pointer to HANDLE   ////////////////
+/////////////////////////////////////// 0 ) pointer to int   ////////////////
     ssSetInputPortWidth             ( S, 0, DYNAMICALLY_SIZED );
     ssSetInputPortDataType          ( S, 0, COM_HANDLE_id     );
     ssSetInputPortDirectFeedThrough ( S, 0, 1                 );
@@ -335,7 +335,7 @@ static void mdlTerminate( SimStruct *S )
 
 void showOutputHandle( SimStruct *S )
 {
-        out_handle_full     = (HANDLE *) &in_handle;    // appear in output 3
+        out_handle_full     = (int *) &in_handle;    // appear in output 3
 }
 
 //==============================================================================

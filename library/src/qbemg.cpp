@@ -37,14 +37,14 @@
 
 //===================================================================     inputs
 
-#define in_handle ( *(const HANDLE* *)ssGetInputPortSignal( S, 0 ) )[0]
+#define in_handle ( *(const int* *)ssGetInputPortSignal( S, 0 ) )[0]
 
 //==================================================================     outputs
 
 #define out_emg_a         ( ssGetOutputPortRealSignal       ( S, 0 ) )
 #define out_emg_b         ( ssGetOutputPortRealSignal       ( S, 1 ) )
-#define out_handle_single ( (HANDLE* *)ssGetOutputPortSignal( S, 0 ) )[0]
-#define out_handle_full   ( (HANDLE* *)ssGetOutputPortSignal( S, 2 ) )[0]
+#define out_handle_single ( (int* *)ssGetOutputPortSignal( S, 0 ) )[0]
+#define out_handle_full   ( (int* *)ssGetOutputPortSignal( S, 2 ) )[0]
 
 //==================================================================      dworks
 #define dwork_out(i)      ( (real_T *)ssGetDWork( S, i ) )
@@ -84,7 +84,7 @@ static void mdlInitializeSizes( SimStruct *S )
 {
     int_T   status;                // for new type definition
     DTypeId COM_HANDLE_id;         // for new type definition
-    HANDLE  handle_aux;            // for new type definition
+    int  handle_aux;            // for new type definition
     int i;                         // for cycles
 
 //======================================================     new type definition
@@ -334,7 +334,7 @@ static void mdlTerminate( SimStruct *S )
 
 void showOutputHandle( SimStruct *S )
 {
-        out_handle_full     = (HANDLE *) &in_handle;    // appear in output 3
+        out_handle_full     = (int *) &in_handle;    // appear in output 3
 }
 
 //==============================================================================

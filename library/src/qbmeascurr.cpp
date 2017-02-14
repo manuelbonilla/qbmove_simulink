@@ -60,7 +60,7 @@
 
 //===================================================================     inputs
 
-#define in_handle ( *(const HANDLE* *)ssGetInputPortSignal( S, 0 ) )[0]
+#define in_handle ( *(const int* *)ssGetInputPortSignal( S, 0 ) )[0]
 #define in_ref_a  ( (const real_T *)ssGetInputPortSignal(   S, 1 ) )
 #define in_ref_b  ( (const real_T *)ssGetInputPortSignal(   S, 2 ) )
 
@@ -74,8 +74,8 @@
 #define out_curr_1        ( ssGetOutputPortRealSignal       ( S, 3 ) )
 #define out_curr_2        ( ssGetOutputPortRealSignal       ( S, 4 ) )
 #define out_debug         ( ssGetOutputPortRealSignal       ( S, 5 ) )
-#define out_handle_single ( (HANDLE* *)ssGetOutputPortSignal( S, 0 ) )[0]
-#define out_handle_full   ( (HANDLE* *)ssGetOutputPortSignal( S, 3 ) )[0]
+#define out_handle_single ( (int* *)ssGetOutputPortSignal( S, 0 ) )[0]
+#define out_handle_full   ( (int* *)ssGetOutputPortSignal( S, 3 ) )[0]
 
 //==================================================================      dworks
 #define dwork_out(i)      ( (real_T *)ssGetDWork( S, i ) )
@@ -142,7 +142,7 @@ static void mdlInitializeSizes( SimStruct *S )
 {
     int_T   status;                // for new type definition
     DTypeId COM_HANDLE_id;         // for new type definition
-    HANDLE  handle_aux;            // for new type definition
+    int  handle_aux;            // for new type definition
     int i;                         // for cycles
 
 //======================================================     new type definition
@@ -198,7 +198,7 @@ static void mdlInitializeSizes( SimStruct *S )
     if ( !ssSetNumInputPorts( S, i ) ) 
         return;
 
-/////////////////////////////////////// 0 ) pointer to HANDLE   ////////////////
+/////////////////////////////////////// 0 ) pointer to int   ////////////////
     ssSetInputPortWidth             ( S, 0, DYNAMICALLY_SIZED );
     ssSetInputPortDataType          ( S, 0, COM_HANDLE_id     );
     ssSetInputPortDirectFeedThrough ( S, 0, 1                 );
@@ -749,9 +749,9 @@ static void mdlTerminate( SimStruct *S )
 void showOutputHandle( SimStruct *S )
 {
     if((params_com_direction == TX) | (params_com_direction == NONE))
-        out_handle_single   = (HANDLE *) &in_handle;    // appear in output 0
+        out_handle_single   = (int *) &in_handle;    // appear in output 0
     if((params_com_direction == RX) | (params_com_direction == BOTH))
-        out_handle_full     = (HANDLE *) &in_handle;    // appear in output 3
+        out_handle_full     = (int *) &in_handle;    // appear in output 3
 }
 
 //==============================================================================

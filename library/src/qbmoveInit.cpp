@@ -13,11 +13,11 @@
 //
 // This function is part of a set that allows the use of the QB Move usin RS485.
 //
-// The HANDLE to the virtual COM is opened and then stored in a PWORK
+// The int to the virtual COM is opened and then stored in a PWORK
 // vector (which ain't a DWORK with type SS_POINTER, that is void).
-// (The type HANDLE also ain't void , but a cast is needed with microsoft
+// (The type int also ain't void , but a cast is needed with microsoft
 // compiler)
-// A type COM_HANDLE is registered and used for the output port.
+// A type COM_int is registered and used for the output port.
 // On output port, the address of the PWORK is put.
 //
 // Other communication parameters are set too: baudrate, parity, stop bits
@@ -84,11 +84,11 @@
 
 //=============================================================     work vectors
 
-#define pwork_handle    (*(HANDLE *)ssGetPWork(S))
+#define pwork_handle    (*(int *)ssGetPWork(S))
 
 //===================================================================     ouputs
 
-#define out_handle  (*(HANDLE **)ssGetOutputPortSignal(S,0))
+#define out_handle  (*(int **)ssGetOutputPortSignal(S,0))
 
 //==============================================================================
 //                                           Configuration and execution methods
@@ -99,7 +99,7 @@ static void mdlInitializeSizes(SimStruct *S)
 {
     int_T   status;                                 // for new type definition
     DTypeId COM_HANDLE_id;                          // for new type definition
-    HANDLE  handle_aux;                             // for new type definition
+    int  handle_aux;                             // for new type definition
 
 //======================================================     new type definition
 
